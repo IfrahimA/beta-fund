@@ -17,34 +17,47 @@ DROP TABLE IF EXISTS PAYMENT;
 DROP TABLE IF EXISTS MATCHING_GIFT;
 DROP TABLE IF EXISTS MATCHING_TABLE;
 
-CREATE TABLE LETTER (
-    LetterID SERIAL PRIMARY KEY,
-    LetterType TEXT,
-    LetterDate TEXT
-);
-
 CREATE TABLE DONOR (
-    DONORID SERIAL PRIMARY KEY,
+    DonorID SERIAL PRIMARY KEY,
     FirstName TEXT,
     LastName TEXT,
     PhoneNumber TEXT,
     Email TEXT,
     Category TEXT CHECK (Category IN ('Alumni', 'Parent', 'Family', 'Faculty', 'Student', 'Other'))
-)
+);
+
+-- The LETTER table now includes the DonorID column to reference the DONOR table
+CREATE TABLE LETTER (
+    LetterID SERIAL PRIMARY KEY,
+    LetterType TEXT,
+    LetterDate TEXT,
+    DonorID INTEGER,
+    FOREIGN KEY (DonorID) REFERENCES DONOR(DonorID)
+);
 
 CREATE TABLE DONOR_CIRCLE (
     CircleID SERIAL PRIMARY KEY,
     CircleName TEXT,
     MinAmount NUMERIC(10, 2),
-    MaxAmount NUMERIC(10, 2)
+    MaxAmount NUMERIC(10, 2),
+    DonorID INTEGER,
+    Foreign KEY (DonorID) REFERENCES Donor(DonorID)
 )
 
-CREATE TABLE DONATION (
+CREATE TABLE "class" (
+    ClassID SERIAL PRIMARY KEY,
+    ClassYear INTEGER, 
+    Foreign KEY (DonorID) REFERENCES Donor(DonorID)
+);
+
+CREATE TABLE  DONATION (
     DonationID SERIAL PRIMARY KEY,
     Amount NUMERIC(10, 2),
     "Date" TEXT,
     Pledge NUMERIC(10, 2),
-    MatchingGiftEligible BOOLEAN
+    MatchingGiftEligible BOOLEAN,
+    DonorID INTEGER,
+    Foreign KEY (DonorID) REFERENCES Donor(DonorID)
 )
 
 CREATE TABLE PAYMENT (
@@ -79,3 +92,4 @@ CREATE TABLE "event" (
     EventDate DATE,
     EventLocation TEXT
 )
+
