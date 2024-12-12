@@ -3,7 +3,7 @@
 DROP TABLE IF EXISTS LETTER CASCADE;
 DROP TABLE IF EXISTS DONOR CASCADE;
 DROP TABLE IF EXISTS DONOR_CIRCLE CASCADE;
-DROP TABLE IF EXISTS "class" CASCADE;
+DROP TABLE IF EXISTS CLASSYEAR CASCADE;
 DROP TABLE IF EXISTS EMPLOYER CASCADE;
 DROP TABLE IF EXISTS DONATION CASCADE;
 DROP TABLE IF EXISTS PAYMENT CASCADE;
@@ -39,9 +39,9 @@ CREATE TABLE DONOR_CIRCLE (
 );
 
 -- Create "class" table
-CREATE TABLE "class" (
+CREATE TABLE CLASSYEAR (
     ClassID SERIAL PRIMARY KEY,
-    ClassYear INTEGER, 
+    Year INTEGER, 
     DonorID INTEGER,
     FOREIGN KEY (DonorID) REFERENCES DONOR(DonorID)
 );
@@ -61,7 +61,6 @@ CREATE TABLE DONATION (
     DonationID SERIAL PRIMARY KEY,
     Amount NUMERIC(10, 2),
     "Date" DATE,  -- Date field changed to DATE type
-    Pledge NUMERIC(10, 2),
     MatchingGiftEligible BOOLEAN,
     DonorID INTEGER,
     FOREIGN KEY (DonorID) REFERENCES DONOR(DonorID)
@@ -114,7 +113,7 @@ VALUES
     ('Grand Circle', 20000.00, 50000.00, 6);
 
 -- Insert data into "class" table
-INSERT INTO "class" (ClassYear, DonorID)
+INSERT INTO CLASSYEAR (Year, DonorID)
 VALUES 
     (2024, 1),
     (2023, 2),
@@ -134,15 +133,14 @@ VALUES
     ('Alumni Meet & Greet', '2024-06-15', 'Alumni Hall', 6);
 
 -- Insert data into DONATION table
-INSERT INTO DONATION (Amount, "Date", Pledge, MatchingGiftEligible, DonorID)
+INSERT INTO DONATION (Amount, "Date", MatchingGiftEligible, DonorID)
 VALUES 
-    (200.00, '2024-01-01', 50.00, TRUE, 1),
-    (300.00, '2024-02-14', 100.00, FALSE, 2),
-    (1500.00, '2024-03-01', 200.00, TRUE, 3),
-    (50.00, '2024-04-10', 20.00, FALSE, 4),
-    (5000.00, '2024-05-01', 500.00, TRUE, 5),
-    (25000.00, '2024-06-10', 1000.00, TRUE, 6);
-
+    (200.00, '2024-01-01', TRUE, 1),
+    (300.00, '2024-02-14', FALSE, 2),
+    (1500.00, '2024-03-01', TRUE, 3),
+    (50.00, '2024-04-10', FALSE, 4),
+    (5000.00, '2024-05-01', TRUE, 5),
+    (25000.00, '2024-06-10', TRUE, 6);
 -- Insert data into EMPLOYER table
 INSERT INTO EMPLOYER (EmployerName, DonorID)
 VALUES 
