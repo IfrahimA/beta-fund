@@ -243,3 +243,52 @@ ORDER BY
 	donor_circle.circleid DESC --start with the highest donor circle per class year
 ;
 
+-- (Report 2) - Monthly Report (no input needed since uses current month)
+
+/* Get the sum of gifts for each category this month.
+ * Gives totals and percentages of pledges and gifts received for the current month in all donor categories.
+ * (The gift_month = CURRENT_MONTH and the GROUP BY donor_category (aggregation on the category) ensure this)
+ * (To be hopefully a bit clearer, in here one of the things we're 
+ *  getting is the percentage of funds received that each category represents)
+ */
+SELECT
+    /* The donation_year_and_month is useful for debugging to make sure only 
+     * donors from the current year are listed in the report.
+     */
+    to_char(donation."Date", 'YYYY-MM') AS donation_year_and_month,
+	donor.category AS donor_category,
+	(SUM(donation.amount)) AS total_funds_per_donor_category,
+	(
+		round((
+			--divide the sum of donation money per category by the total funds received this month
+			(SUM(donation.amount)) / (
+				1.0 * (
+					SELECT
+						SUM(donation.amount)
+					FROM
+						donation
+					WHERE
+						--gets the current month and turns to CHAR for comparison
+						(
+							to_char(donation."Date", 'YYYY-MM') = to_char(CURRENT_DATE, 'YYYY-MM')
+						)
+				)
+			)
+		) * 100, 1)
+        --the above times 100 & rounded to one decimal place to get the percentage for this donor category
+	) AS percentage_of_funds_per_donor_category
+FROM
+	donation,
+	donor
+WHERE
+	(donation.donorid = donor.donorid)
+	AND --gets the current month and turns to CHAR for comparison
+	(
+		to_char(donation."Date", 'MM') = to_char(CURRENT_DATE, 'MM')
+	)
+GROUP BY
+    donation_year_and_month,
+	donor.category
+ORDER BY
+	percentage_of_funds_per_donor_category DESC
+;

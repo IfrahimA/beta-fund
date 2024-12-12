@@ -153,6 +153,10 @@ VALUES
 -- Insert data into DONATION table
 INSERT INTO DONATION (Amount, "Date", MatchingGiftEligible, DonorID)
 VALUES 
+    (750.00, '2024-12-12', TRUE, 3),
+    (3000.00, '2024-02-24', FALSE, 1),
+    (1600.00, '2024-03-19', FALSE, 2),
+    (5000.00, '2024-12-09', TRUE, 6),
     (200.00, '2024-01-01', TRUE, 1),
     (300.00, '2024-02-14', FALSE, 2),
     (1500.00, '2024-03-01', TRUE, 3),
