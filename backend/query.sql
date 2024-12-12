@@ -2,6 +2,8 @@
 -- Queries for application reports
 -- (3 with input and 3 without input for 6 in total)
 --
+-- ONLY REPORT #1, the Annual Report and its 6 summaries, is ready so far
+--
 -- The reports are:
 -- 1) Annual Report to Donors (with 6 different summaries in addition
 --     to the main report - so, 7 queries are needed)
