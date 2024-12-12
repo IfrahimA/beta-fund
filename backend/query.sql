@@ -439,7 +439,7 @@ FROM
 		)
 		LEFT OUTER JOIN donor_circle ON (donor.circleid = donor_circle.circleid)
 	)
-	INNER JOIN classyear ON (donor.classid = classyear.classid)
+	LEFT OUTER JOIN classyear ON (donor.classid = classyear.classid)
 WHERE
 	( --Get rows where the donor donated last year or this year, or has no donation either year.
 		--(avoid listing gifts from all other years)
@@ -455,7 +455,7 @@ WHERE
 		OR (donation."Date" IS NULL)
 	)
 	AND (
-		classyear.classid = 3 --Replace 0 with the class_id of the coordinator chosen by the user
+		classyear.classid = 5 --Replace 0 with the class_id of the coordinator chosen by the user
 	)
 ORDER BY
 	donor.donorid ASC, --Sort by the donor and donation IDs, from smallest to largest
@@ -495,7 +495,7 @@ FROM
 	)
 	LEFT OUTER JOIN classyear ON (donor.classid = classyear.classid)
 WHERE
-	volunteerassignment.volunteerid = 1 --Replace 0 with the ID of the volunteer that the user selects
+	volunteerassignment.volunteerid = 1 --Replace number with the ID of the volunteer that the user selects
 ORDER BY
 	donor.donorid ASC
 ;
