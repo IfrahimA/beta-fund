@@ -7,6 +7,7 @@ DROP TABLE IF EXISTS CLASSYEAR CASCADE;
 DROP TABLE IF EXISTS EMPLOYER CASCADE;
 DROP TABLE IF EXISTS DONATION CASCADE;
 DROP TABLE IF EXISTS PAYMENT CASCADE;
+DROP TABLE IF EXISTS DEFERREDPAYMENT;
 DROP TABLE IF EXISTS "event" CASCADE;
 
 -- Create CLASSYEAR table
@@ -30,6 +31,23 @@ CREATE TABLE DONOR (
     DonorID INTEGER NOT NULL GENERATED ALWAYS AS IDENTITY,
     FirstName TEXT,
     LastName TEXT,
+    Street TEXT,
+    City Text,
+    State_ TEXT CHECK (State_ IN
+			('AL', 'AK', 'AZ', 'AR', 'AS',
+			 'CA', 'CO', 'CT', 'DE', 'DC',
+			 'FL', 'FM', 'GA', 'GU', 'HI',
+			 'ID', 'IL', 'IN', 'IA', 'KS',
+			 'KY', 'LA', 'ME', 'MH', 'MD',
+			 'MA', 'MI', 'MN', 'MS', 'MO',
+			 'MT', 'NE', 'NV', 'NH', 'NJ',
+			 'NM', 'NY', 'NC', 'ND', 'MP',
+			 'OH', 'OK', 'OR', 'PW', 'PA',
+			 'PR', 'RI', 'SC', 'SD', 'TN',
+			 'TX', 'UT', 'VT', 'VA', 'VI',
+			 'WA', 'WV', 'WI', 'WY',
+			 'AE', 'AP', 'AA')),
+    Zip TEXT,
     PhoneNumber TEXT,
     Email TEXT,
     Category TEXT CHECK (Category IN ('Alumni', 'Parent', 'Family', 'Faculty', 'Student', 'Other')),
@@ -97,6 +115,19 @@ CREATE TABLE PAYMENT (
     REFERENCES DONATION(DonationID)
 );
 
+CREATE TABLE DEFERREDPAYMENT
+(
+	DefPaymentID INTEGER NOT NULL GENERATED ALWAYS AS IDENTITY,
+	DueDate DATE NOT NULL,
+    AmountDue NUMERIC(9,2) NOT NULL,
+    IsSubmitted BOOLEAN NOT NULL DEFAULT FALSE,
+    SubmittedDate DATE NULL DEFAULT NULL,
+    PaymentID INTEGER NOT NULL,
+	CONSTRAINT DefPaymentPK PRIMARY KEY (DefPaymentID),
+	CONSTRAINT DefPaymentFK1 FOREIGN KEY (PaymentID)
+	REFERENCES PAYMENT(PaymentID)
+);
+
 -- Insert data into "class" table
 INSERT INTO CLASSYEAR (ClassYear)
 VALUES 
@@ -121,14 +152,14 @@ VALUES --'E' indicates that the backslash escape sequence is used
     (E'President\' Circle', 50000.00, 99999999.99);
 
 -- Insert data into DONOR table
-INSERT INTO DONOR (FirstName, LastName, PhoneNumber, Email, Category, ClassID, CircleID) 
+INSERT INTO DONOR (FirstName, LastName, Street, City, State_, Zip, PhoneNumber, Email, Category, ClassID, CircleID) 
 VALUES 
-    ('John', 'Doe', '555-1234', 'john.doe@example.com', 'Alumni', 1, 1),
-    ('Jane', 'Smith', '555-5678', 'jane.smith@example.com', 'Parent', 2, 2),
-    ('Alice', 'Johnson', '555-8765', 'alice.johnson@example.com', 'Faculty', 3, 3),
-    ('Bob', 'Williams', '555-4321', 'bob.williams@example.com', 'Student', 4, 4),
-    ('Charlie', 'Brown', '555-6789', 'charlie.brown@example.com', 'Alumni', 5, 5),
-    ('Diana', 'Clark', '555-9876', 'diana.clark@example.com', 'Other', 1, 6);
+    ('John', 'Doe', 'Long Lane', 'Small Town', 'OK', '55599', '555-1234', 'john.doe@example.com', 'Alumni', 1, 1),
+    ('Jane', 'Smith', 'Station Avenue', 'Center Valley', 'PA', '18034', '555-5678', 'jane.smith@example.com', 'Parent', 2, 2),
+    ('Alice', 'Johnson', 'Wide Road', 'Redmond', 'WA', '88044', '555-8765', 'alice.johnson@example.com', 'Faculty', 3, 3),
+    ('Bob', 'Williams', 'Narrow Avenue', 'New York', 'NY', '23994', '555-4321', 'bob.williams@example.com', 'Student', 4, 4),
+    ('Charlie', 'Brown', 'Short Street', 'Brickville', 'OH', '22211', '555-6789', 'charlie.brown@example.com', 'Alumni', 5, 5),
+    ('Diana', 'Clark', 'Cherry Street', 'Sakura', 'CA', '13955', '555-9876', 'diana.clark@example.com', 'Other', 1, 6);
 
 -- Insert data into LETTER table
 INSERT INTO LETTER (LetterType, LetterDate, DonorID)
@@ -181,4 +212,21 @@ VALUES
     ('Credit Card', 3),
     ('Deferred', 4),
     ('Credit Card', 5),
-    ('Check', 6);
+    ('Check', 6),
+    ('Deferred', 1),
+    ('Deferred', 3),
+    ('Deferred', 6),
+    ('Deferred', 5),
+    ('Deferred', 2),
+    ('Deferred', 3);
+
+INSERT INTO DEFERREDPAYMENT (DueDate, AmountDue, IsSubmitted, SubmittedDate, PaymentID)
+VALUES 
+    ('2024-12-01', 50.00, TRUE, '2024-11-29', 4),
+    ('2024-12-01', 150.00, FALSE, NULL, 7),
+    ('2024-12-01', 50.00, FALSE, NULL, 8),
+    ('2024-09-01', 50.00, FALSE, NULL, 9),
+    ('2023-06-01', 150.00, FALSE, NULL, 10),
+    ('2023-06-01', 50.00, TRUE, '2023-05-30', 11),
+    ('2024-12-17', 250.00, FALSE, NULL, 12);
+

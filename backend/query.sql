@@ -292,3 +292,68 @@ GROUP BY
 ORDER BY
 	percentage_of_funds_per_donor_category DESC
 ;
+
+-- (Report 3) Payments Due Report (no input needed since uses current month)
+
+/* Gets the pledge payments due this month but not received.
+ * Lists the donor's name, address, the amount due, date due, total amount of the pledge,
+ * the total amount received so far, and the date of the previous payment
+ * (if there are any previous payments).
+ */
+
+SELECT
+	donor.donorid,
+	donor.lastname,
+    donor.firstname,
+	(
+		donor.street || ' ' || donor.city || ' ' || donor.state_ || ' ' || donor.zip
+	) AS donor_address,
+	deferredpayment.amountdue,
+	deferredpayment.duedate,
+	d.amount AS pledge_amount,
+	COALESCE(round((
+		SELECT sum(deferredpayment.amountdue)
+        FROM deferredpayment,
+             payment,
+             donation
+        WHERE (deferredpayment.paymentid = payment.paymentid)
+            AND (payment.donationid = d.donationid)
+            --AND (CAST(to_char(deferredpayment.duedate, 'YYYY-MM') AS INTEGER) < CAST(to_char(CURRENT_DATE, 'YYYY-MM') AS INTEGER))
+            AND (issubmitted = TRUE)
+        --donation.amount - 0 --deferredpayment.amount_remaining
+	), 2), 0.00) AS amount_received,
+	--RETURN DATE OF LAST PAYMENT
+	--How to do? That is, how to select based on a per-row value in the SELECT clause?
+    --Use alias of table name: https://stackoverflow.com/questions/37007938/how-to-use-column-value-in-subquery
+    (
+        SELECT deferredpayment.submitteddate
+        FROM deferredpayment,
+             payment,
+             donation
+        WHERE (deferredpayment.paymentid = payment.paymentid)
+            AND (payment.donationid = d.donationid)
+            AND (CAST(to_char(deferredpayment.duedate, 'YYYYMM') AS INTEGER) < CAST(to_char(CURRENT_DATE, 'YYYYMM') AS INTEGER))
+            AND (issubmitted = TRUE)
+        ORDER BY deferredpayment.duedate ASC
+        LIMIT 1
+    ) AS date_of_previous_payment
+FROM
+	donor,
+	donation AS d,
+	payment,
+	deferredpayment
+WHERE
+	(donor.donorid = d.donorid)
+	AND (d.donationid = payment.donationid)
+	AND (
+		payment.paymentid = deferredpayment.defpaymentid
+	)
+	AND --gets the current month and turns to CHAR for comparison
+	(
+		to_char(deferredpayment.duedate, 'YYYY-MM') = to_char(CURRENT_DATE, 'YYYY-MM')
+	)
+ORDER BY
+	deferredpayment.duedate ASC,
+    deferredpayment.amountdue DESC
+;
+
