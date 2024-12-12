@@ -11,7 +11,8 @@ const links = [
 		href: '/dashboard/donations',
 	},
 	{ name: 'Members', href: '/dashboard/members' },
-	{ name: 'Reports', href: '/dashboard/report'}
+	{ name: 'Reports', href: '/dashboard/reports' },
+	{ name: 'Contact', href: '/dashboard/contacts' },
 ];
 
 export default function NavLinks() {
