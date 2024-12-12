@@ -357,3 +357,33 @@ ORDER BY
     deferredpayment.amountdue DESC
 ;
 
+-- (Report 4) Event Report (user chooses an event to look up)
+
+-- Show who attends each of the fundraising events, and what pledges and gifts were received from the attendees
+
+SELECT
+    "event".eventid,
+    "event".eventname,
+    "event".eventdate,
+	donor.donorid,
+	donor.lastname,
+    donor.firstname,
+	donation.donationid,
+	donation.amount AS donation_amount
+FROM
+	(
+		(
+            "event"
+            INNER JOIN
+            eventattendance ON ("event".eventid = eventattendance.eventid)
+        )
+        INNER JOIN donor ON eventattendance.donorid = donor.donorid
+	)
+	LEFT OUTER JOIN donation ON eventattendance.donorid = donation.donorid
+WHERE
+	eventattendance.eventid = 4 --replace '4' with the ID of the event the user wants a report for
+ORDER BY
+	donor.lastname, donor.firstname ASC,
+	donation.amount DESC --show donor in alphabetical order by last name, and show each donor's largest gifts first
+;
+

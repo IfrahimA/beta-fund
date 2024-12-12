@@ -83,6 +83,18 @@ CREATE TABLE "event" (
     REFERENCES DONOR(DonorID)
 );
 
+--Create EVENTATTENDANCE table
+--Allows keeping history of which events a donor went to
+CREATE TABLE EVENTATTENDANCE (
+    EventID INTEGER NOT NULL,
+    DonorID INTEGER NOT NULL,
+    CONSTRAINT EventAttendancePK PRIMARY KEY (EventID, DonorID),
+    CONSTRAINT EventAttendanceFK1 FOREIGN KEY (EventID)
+    REFERENCES "event"(EventID),
+    CONSTRAINT EventAttendanceFK2 FOREIGN KEY (DonorID)
+    REFERENCES DONOR(DonorID)
+);
+
 -- Create DONATION table
 CREATE TABLE DONATION (
     DonationID INTEGER NOT NULL GENERATED ALWAYS AS IDENTITY,
@@ -181,6 +193,22 @@ VALUES
     ('Fundraising Banquet', '2024-10-30', 'Hilton Hotel', 5),
     ('Alumni Meet & Greet', '2024-06-15', 'Alumni Hall', 6);
 
+--Insert data into EVENTATTENDANCE table
+INSERT INTO EVENTATTENDANCE (EventID, DonorID)
+VALUES
+    (1, 2),
+    (4, 5),
+    (1, 6),
+    (6, 2),
+    (6, 3),
+    (3, 3),
+    (4, 4),
+    (4, 1),
+    (4, 2),
+    (1, 3),
+    (3, 1),
+    (5, 5);
+
 -- Insert data into DONATION table
 INSERT INTO DONATION (Amount, "Date", MatchingGiftEligible, DonorID)
 VALUES 
@@ -194,6 +222,7 @@ VALUES
     (50.00, '2024-04-10', FALSE, 4),
     (5000.00, '2024-05-01', TRUE, 5),
     (25000.00, '2024-06-10', TRUE, 6);
+
 -- Insert data into EMPLOYER table
 INSERT INTO EMPLOYER (EmployerName, DonorID)
 VALUES 
@@ -220,6 +249,7 @@ VALUES
     ('Deferred', 2),
     ('Deferred', 3);
 
+--Insert data into DEFERREDPAYMENT table
 INSERT INTO DEFERREDPAYMENT (DueDate, AmountDue, IsSubmitted, SubmittedDate, PaymentID)
 VALUES 
     ('2024-12-01', 50.00, TRUE, '2024-11-29', 4),
