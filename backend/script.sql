@@ -8,6 +8,7 @@ DROP TABLE IF EXISTS EMPLOYER CASCADE;
 DROP TABLE IF EXISTS DONATION CASCADE;
 DROP TABLE IF EXISTS PAYMENT CASCADE;
 DROP TABLE IF EXISTS DEFERREDPAYMENT;
+DROP TABLE IF EXISTS EVENTATTENDANCE;
 DROP TABLE IF EXISTS "event" CASCADE;
 
 -- Create CLASSYEAR table
@@ -259,69 +260,3 @@ VALUES
     ('2023-06-01', 150.00, FALSE, NULL, 10),
     ('2023-06-01', 50.00, TRUE, '2023-05-30', 11),
     ('2024-12-17', 250.00, FALSE, NULL, 12);
-
-/* Trigger */
-CREATE OR REPLACE FUNCTION validate_donor()
-RETURNS TRIGGER AS $$
-BEGIN
-    -- Example validation: Ensure email contains '@'
-    IF NEW.Email IS NOT NULL AND POSITION('@' IN NEW.Email) = 0 THEN
-        RAISE EXCEPTION 'Invalid email format for donor with ID: %', NEW.DonorID;
-    END IF;
-
-    -- Example action: Auto-format phone numbers (basic example)
-    IF NEW.PhoneNumber IS NOT NULL THEN
-        NEW.PhoneNumber := regexp_replace(NEW.PhoneNumber, '\D', '', 'g'); -- Remove non-numeric characters
-    END IF;
-
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
--- Create the trigger
-CREATE TRIGGER donor_insert_trigger
-BEFORE INSERT ON DONOR
-FOR EACH ROW
-EXECUTE FUNCTION validate_donor();
-
-/* Procedure to Update Attendance */
-CREATE OR REPLACE PROCEDURE record_event_attendance(
-    event_id INTEGER,
-    donor_id INTEGER
-)
-LANGUAGE plpgsql AS $$
-BEGIN
-    INSERT INTO EVENTATTENDANCE (EventID, DonorID)
-    VALUES (event_id, donor_id);
-END;
-$$;
-
-CREATE OR REPLACE PROCEDURE process_donors_by_category(category_filter TEXT)
-LANGUAGE plpgsql AS $$
-DECLARE
-    donor_cursor CURSOR FOR 
-        SELECT DonorID, FirstName, LastName, Email 
-        FROM DONOR
-        WHERE Category = category_filter;
-    donor_record RECORD;
-BEGIN
-    -- Open the cursor
-    OPEN donor_cursor;
-
-    -- Fetch each record and process it
-    LOOP
-        FETCH donor_cursor INTO donor_record;
-        EXIT WHEN NOT FOUND;
-
-        -- Example: Log donor information (replace with your desired logic)
-        RAISE NOTICE 'Processing Donor: ID=% Name=% % Email=%',
-        donor_record.DonorID, donor_record.FirstName, donor_record.LastName, donor_record.Email;
-    END LOOP;
-
-    -- Close the cursor
-    CLOSE donor_cursor;
-END;
-$$;
-
-/* Example */
-CALL process_donors_by_category('Alumni');
