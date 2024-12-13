@@ -455,7 +455,7 @@ WHERE
 		OR (donation."Date" IS NULL)
 	)
 	AND (
-		classyear.classid = 5 --Replace 0 with the class_id of the coordinator chosen by the user
+		classyear.classid = 5 --Replace number with the class_id of the coordinator chosen by the user
 	)
 ORDER BY
 	donor.donorid ASC, --Sort by the donor and donation IDs, from smallest to largest
