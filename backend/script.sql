@@ -18,7 +18,7 @@ DROP TABLE IF EXISTS "event" CASCADE;
 -- Create CLASSYEAR table
 CREATE TABLE CLASSYEAR (
     ClassID INTEGER NOT NULL GENERATED ALWAYS AS IDENTITY,
-    ClassYear INTEGER, 
+    ClassYear INTEGER NOT NULL,
 	CONSTRAINT ClassPK PRIMARY KEY (ClassID)
 );
 
@@ -26,9 +26,9 @@ CREATE TABLE CLASSYEAR (
 CREATE TABLE CLASSCOORDINATOR
 (
     CoordinatorID INTEGER NOT NULL GENERATED ALWAYS AS IDENTITY,
-    FirstName TEXT,
-    LastName TEXT,
-    ClassID INTEGER,
+    FirstName TEXT NOT NULL,
+    LastName TEXT NOT NULL,
+    ClassID INTEGER NULL,
     CONSTRAINT CoordinatorPK PRIMARY KEY (CoordinatorID),
     CONSTRAINT CoordinatorFK1 FOREIGN KEY (ClassID)
     REFERENCES CLASSYEAR (ClassID)
@@ -38,15 +38,15 @@ CREATE TABLE CLASSCOORDINATOR
 CREATE TABLE VOLUNTEER
 (
     VolunteerID INTEGER NOT NULL GENERATED ALWAYS AS IDENTITY,
-    FirstName TEXT,
-    LastName TEXT,
+    FirstName TEXT NOT NULL,
+    LastName TEXT NOT NULL,
     CONSTRAINT VolunteerPK PRIMARY KEY (VolunteerID)
 );
 
 --Create PHONOTHON table
 CREATE TABLE PHONOTHON
 (
-    PhonothonID INTEGER GENERATED ALWAYS AS IDENTITY,
+    PhonothonID INTEGER NOT NULL GENERATED ALWAYS AS IDENTITY,
     PhonothonDate DATE NOT NULL,
     CONSTRAINT PhonothonPK PRIMARY KEY (PhonothonID)
 );
@@ -54,20 +54,20 @@ CREATE TABLE PHONOTHON
 -- Create DONOR_CIRCLE table
 CREATE TABLE DONOR_CIRCLE (
     CircleID INTEGER NOT NULL GENERATED ALWAYS AS IDENTITY,
-    CircleName TEXT,
-    MinAmount NUMERIC(10, 2),
-    MaxAmount NUMERIC(10, 2),
+    CircleName TEXT NOT NULL,
+    MinAmount NUMERIC(10, 2) NOT NULL,
+    MaxAmount NUMERIC(10, 2) NOT NULL,
     CONSTRAINT CirclePK PRIMARY KEY (CircleID)
 );
 
 -- Create DONOR table
 CREATE TABLE DONOR (
     DonorID INTEGER NOT NULL GENERATED ALWAYS AS IDENTITY,
-    FirstName TEXT,
-    LastName TEXT,
-    Street TEXT,
-    City Text,
-    State_ TEXT CHECK (State_ IN
+    FirstName TEXT NOT NULL,
+    LastName TEXT NOT NULL,
+    Street TEXT NULL,
+    City Text NULL,
+    State_ TEXT NULL CHECK (State_ IN
 			('AL', 'AK', 'AZ', 'AR', 'AS',
 			 'CA', 'CO', 'CT', 'DE', 'DC',
 			 'FL', 'FM', 'GA', 'GU', 'HI',
@@ -81,10 +81,10 @@ CREATE TABLE DONOR (
 			 'TX', 'UT', 'VT', 'VA', 'VI',
 			 'WA', 'WV', 'WI', 'WY',
 			 'AE', 'AP', 'AA')),
-    Zip TEXT,
-    PhoneNumber TEXT,
-    Email TEXT,
-    Category TEXT CHECK (Category IN ('Alumni', 'Parent', 'Family', 'Faculty', 'Student', 'Other')),
+    Zip TEXT NULL,
+    PhoneNumber TEXT NULL,
+    Email TEXT NULL,
+    Category TEXT NOT NULL CHECK (Category IN ('Alumni', 'Parent', 'Family', 'Faculty', 'Student', 'Other')),
     ClassID INTEGER NULL,
     CircleID INTEGER NULL,
     CONSTRAINT DonorPK PRIMARY KEY (DonorID),
@@ -112,9 +112,9 @@ CREATE TABLE VOLUNTEERASSIGNMENT
 -- Create LETTER table
 CREATE TABLE LETTER (
     LetterID INTEGER NOT NULL GENERATED ALWAYS AS IDENTITY,
-    LetterType TEXT,
-    LetterDate TEXT,
-    DonorID INTEGER,
+    LetterType TEXT NULL,
+    LetterDate TEXT NOT NULL,
+    DonorID INTEGER NOT NULL,
     CONSTRAINT LetterPK PRIMARY KEY (LetterID),
     CONSTRAINT LetterFK1 FOREIGN KEY (DonorID)
     REFERENCES DONOR(DonorID)
@@ -123,9 +123,9 @@ CREATE TABLE LETTER (
 -- Create "event" table
 CREATE TABLE "event" (
     EventID INTEGER NOT NULL GENERATED ALWAYS AS IDENTITY,
-    EventName TEXT,
-    EventDate DATE,
-    EventLocation TEXT,
+    EventName TEXT NOT NULL,
+    EventDate DATE NOT NULL,
+    EventLocation TEXT NULL,
     CONSTRAINT EventPK PRIMARY KEY (EventID)
 );
 
@@ -144,10 +144,10 @@ CREATE TABLE EVENTATTENDANCE (
 -- Create DONATION table
 CREATE TABLE DONATION (
     DonationID INTEGER NOT NULL GENERATED ALWAYS AS IDENTITY,
-    Amount NUMERIC(10, 2),
-    "Date" DATE,  -- Date field changed to DATE type
-    MatchingGiftEligible BOOLEAN,
-    DonorID INTEGER,
+    Amount NUMERIC(10, 2) NOT NULL,
+    "Date" DATE NOT NULL,  -- Date field changed to DATE type
+    MatchingGiftEligible BOOLEAN NOT NULL DEFAULT FALSE,
+    DonorID INTEGER NOT NULL,
     CONSTRAINT DonationPK PRIMARY KEY (DonationID),
     CONSTRAINT DonationFK1 FOREIGN KEY (DonorID)
     REFERENCES DONOR(DonorID)
@@ -156,8 +156,8 @@ CREATE TABLE DONATION (
 -- Create EMPLOYER table
 CREATE TABLE EMPLOYER (
     EmployerID INTEGER NOT NULL GENERATED ALWAYS AS IDENTITY,
-    EmployerName TEXT,
-    DonorID INTEGER,
+    EmployerName TEXT NOT NULL,
+    DonorID INTEGER NULL,
     CONSTRAINT EmployerPK PRIMARY KEY (EmployerID),
     CONSTRAINT EmployerFK1 FOREIGN KEY (DonorID)
     REFERENCES DONOR(DonorID)
@@ -166,8 +166,8 @@ CREATE TABLE EMPLOYER (
 -- Create PAYMENT table
 CREATE TABLE PAYMENT (
     PaymentID INTEGER NOT NULL GENERATED ALWAYS AS IDENTITY,
-    PaymentMethod TEXT CHECK (PaymentMethod IN ('Check', 'Credit Card', 'Deferred')),
-    DonationID INTEGER,
+    PaymentMethod TEXT NOT NULL CHECK (PaymentMethod IN ('Check', 'Credit Card', 'Deferred')),
+    DonationID INTEGER NOT NULL,
     CONSTRAINT PaymentPK PRIMARY KEY (PaymentID),
     CONSTRAINT PaymentFK1 FOREIGN KEY (DonationID)
     REFERENCES DONATION(DonationID)
