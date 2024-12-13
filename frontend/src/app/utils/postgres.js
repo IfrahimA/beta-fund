@@ -1,6 +1,6 @@
-import { Client } from 'pg';
+import { Pool } from 'pg';
 
-const pool = new Client({
+const pool = new Pool({
 	connectionString: process.env.DATABASE_URL,
 	ssl: {
 		rejectUnauthorized: false,

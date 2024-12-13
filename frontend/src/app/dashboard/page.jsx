@@ -1,28 +1,14 @@
 import React from 'react';
-import pool from '../utils/postgres';
+import { totalRaised } from '../utils/queries';
 import { RaisedPerClassYear } from '../components/RaisedPerClass';
 import { DonorByCategory } from '../components/DonorPerCategory';
 import { DonationPerCircle } from '../components/DonationPerCircle';
 import { PaymentsDue } from '../components/PaymentsDue';
 import { DonationPerEvent } from '../components/DonationPerEvent';
 
-const totalRaised = async () => {
-	try {
-		const client = await pool.connect();
-		const result = await client.query(
-			`SELECT to_char(donation."Date", 'YYYY') AS donation_year, COUNT(DISTINCT (donor.donorid)) AS total_donors, SUM(amount) AS total_raised_from_all_donors FROM donor INNER JOIN donation ON donor.donorid = donation.donorid WHERE to_char(donation."Date", 'YYYY') = to_char(CURRENT_DATE, 'YYYY') GROUP BY donation_year`
-		);
-		const data = result.rows;
-		client.release();
-		return data;
-	} catch (error) {
-		console.error('Error fetching data:', error);
-	}
-};
-
 export default async function Page() {
 	const data = await totalRaised();
-	const percentage = 90;
+	const percentage = 95;
 	return (
 		<div className='flex flex-col items-center justify-center min-h-screen p-6'>
 			<div className='text-3xl font-semibold text-gray-800 text-center'>
