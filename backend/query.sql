@@ -16,6 +16,9 @@
 -- 
 --=====================================
 
+--Gets donors and total given for all donation history in the database
+SELECT donor.donorid, firstname, lastname, sum(donation.amount) FROM donor INNER JOIN donation ON (donor.donorid = donation.donorid) GROUP BY donor.donorid
+
 -- Query to get donors and donations
 SELECT * FROM donor JOIN donation USING(donorid);
 
@@ -64,10 +67,7 @@ ORDER BY
 
 -- (Annual Report Summary 1) Get the total raised from all donors
 SELECT
-    /* The donation_year is useful for debugging to make sure only 
-     * donors from the current year are listed in the report.
-     */
-    to_char(donation."Date", 'YYYY') AS donation_year,
+    to_char(donation."Date", 'YYYY') AS fiscal_year,
 	COUNT(DISTINCT (donor.donorid)) AS total_donors,
 	SUM(amount) AS total_raised_from_all_donors
 FROM
@@ -76,7 +76,7 @@ FROM
 WHERE
 	--gets the current year and turns to CHAR for comparison
 	to_char(donation."Date", 'YYYY') = to_char(CURRENT_DATE, 'YYYY')
-GROUP BY donation_year
+GROUP BY fiscal_year
 ;
 
 -- (Annual Report Summary 2) Get the total raised per class for each class that had someone donate this year
@@ -318,7 +318,7 @@ SELECT
              donation
         WHERE (deferredpayment.paymentid = payment.paymentid)
             AND (payment.donationid = d.donationid)
-            --AND (CAST(to_char(deferredpayment.duedate, 'YYYY-MM') AS INTEGER) < CAST(to_char(CURRENT_DATE, 'YYYY-MM') AS INTEGER))
+            AND (CAST(to_char(deferredpayment.duedate, 'YYYYMM') AS INTEGER) < CAST(to_char(CURRENT_DATE, 'YYYYMM') AS INTEGER))
             AND (issubmitted = TRUE)
         --donation.amount - 0 --deferredpayment.amount_remaining
 	), 2), 0.00) AS amount_received,
@@ -387,3 +387,115 @@ ORDER BY
 	donation.amount DESC --show donor in alphabetical order by last name, and show each donor's largest gifts first
 ;
 
+--Get totals for all events
+SELECT
+    "event".eventid,
+    "event".eventname,
+    "event".eventdate,
+	sum(donation.amount) AS totalRaised
+FROM
+	(
+		(
+            "event"
+            INNER JOIN
+            eventattendance ON ("event".eventid = eventattendance.eventid)
+        )
+        INNER JOIN donor ON eventattendance.donorid = donor.donorid
+	)
+	LEFT OUTER JOIN donation ON eventattendance.donorid = donation.donorid
+GROUP BY "event".eventid
+;
+
+-- (Report 5) Class Representative Contact List (user chooses a class representative to look up)
+
+-- For each class representative, get the list of classmates to be contacted.
+--
+-- This includes each contact's: name, address, telephone number, last year's donation information,
+--  and this year's donation information.
+--
+-- (Though, the phrase donation information is somewhat vague - so, this will show one row for each
+--   donation per contact over the current and past year.
+--  And, those contacts who did not donate this year or last year will have
+--   one row of null donation information.)
+SELECT
+	donor.donorid,
+	donor.lastname,
+    donor.firstname,
+	(
+		donor.street || ' ' || donor.city || ' ' || donor.state_ || ' ' || donor.zip
+	) AS donor_address,
+	donor.phonenumber,
+	donation.donationid,
+	donation.amount,
+	donation."Date",
+	donation.matchinggifteligible,
+	donor.circleid,
+	donor_circle.circlename
+FROM
+	(
+		(
+			donor
+			LEFT OUTER JOIN donation ON (donor.donorid = donation.donorid)
+		)
+		LEFT OUTER JOIN donor_circle ON (donor.circleid = donor_circle.circleid)
+	)
+	LEFT OUTER JOIN classyear ON (donor.classid = classyear.classid)
+WHERE
+	( --Get rows where the donor donated last year or this year, or has no donation either year.
+		--(avoid listing gifts from all other years)
+		--Get the current year and turn it into CHAR for comparison
+		(
+			TO_CHAR(donation."Date", 'YYYY') = TO_CHAR(CURRENT_DATE, 'YYYY')
+		)
+		OR ( --Use casting to integer to get the current year minus 1.
+			CAST(TO_CHAR(donation."Date", 'YYYY') AS INTEGER) = (
+				CAST(TO_CHAR(CURRENT_DATE, 'YYYY') AS INTEGER) - 1
+			)
+		)
+		OR (donation."Date" IS NULL)
+	)
+	AND (
+		classyear.classid = 5 --Replace number with the class_id of the coordinator chosen by the user
+	)
+ORDER BY
+	donor.donorid ASC, --Sort by the donor and donation IDs, from smallest to largest
+	donation.donationid ASC
+;
+
+-- (Report 6) Phonothon Volunteer Contact List (user chooses a phonothon volunteer to look up)
+
+--For a volunteer that the user selects, get the information of the potential donors to contact:
+--This info is: the donor name, telephone number, address, donor category, class year (if they were/are a student)
+--and: the last year's donation information for the donor
+
+SELECT
+	--Donor information
+	volunteerassignment.donorid,
+	donor.lastname,
+	donor.firstname,
+	donor.phonenumber,
+	(
+		donor.street || ' ' || donor.city || ' ' || donor.state_ || ' ' || donor.zip
+	) AS address,
+	donor.category,
+	donor.classid,
+	coalesce(classyear.classyear, 1) AS num,
+	--Donation information
+	donation.donationid,
+	donation.amount,
+	donation."Date",
+	donation.matchinggifteligible
+FROM
+	(
+		(
+			volunteerassignment
+			INNER JOIN donor ON (volunteerassignment.donorid = donor.donorid)
+		)
+		LEFT OUTER JOIN donation ON (donor.donorid = donation.donorid)
+	)
+	LEFT OUTER JOIN classyear ON (donor.classid = classyear.classid)
+WHERE
+	volunteerassignment.volunteerid = 1 --Replace number with the ID of the volunteer that the user selects
+ORDER BY
+	donor.donorid ASC
+;
