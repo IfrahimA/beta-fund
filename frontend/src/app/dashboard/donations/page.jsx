@@ -1,23 +1,5 @@
 import React from 'react';
-import pool from '../../utils/postgres';
-
-const fetchDonations = async () => {
-	try {
-		const client = await pool.connect();
-		console.log('connected to the db');
-
-		const result = await client.query(
-			'SELECT donor.donorid, firstname, lastname, sum(donation.amount) as total_donation FROM donor INNER JOIN donation ON (donor.donorid = donation.donorid) GROUP BY donor.donorid, firstname, lastname ORDER BY total_donation DESC'
-		);
-		const data = result.rows;
-		console.log('Fetched data:', data);
-		client.release();
-		return data;
-	} catch (error) {
-		console.error('Error fetching data:', error);
-		return [];
-	}
-};
+import { fetchDonations } from '@/app/utils/queries';
 
 export default async function DonationsPage() {
 	const data = await fetchDonations();

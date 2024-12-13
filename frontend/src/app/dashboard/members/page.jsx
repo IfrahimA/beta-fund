@@ -1,27 +1,9 @@
 import React from 'react';
-import pool from '../../utils/postgres';
 import Link from 'next/link';
-
-const fetchDataFromDB = async () => {
-	try {
-		const client = await pool.connect();
-		console.log('connected to the db');
-
-		const result = await client.query(
-			'SELECT * FROM DONOR ORDER BY lastname, firstname'
-		);
-		const data = result.rows;
-		console.log('Fetched data:', data);
-		client.release();
-		return data;
-	} catch (error) {
-		console.error('Error fetching data:', error);
-		return [];
-	}
-};
+import { fetchMembers } from '@/app/utils/queries';
 
 export default async function MembersPage() {
-	const data = await fetchDataFromDB();
+	const data = await fetchMembers();
 
 	return (
 		<div className='flex justify-center items-center min-h-screen bg-gray-50 p-4'>
